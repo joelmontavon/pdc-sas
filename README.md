@@ -138,7 +138,7 @@ Now, we have everything we need to calculate the PDC. PDC is simply the total da
     run;
     
 
-A similar approach can be used for identifying concurrent use of multiple medications.Below, I identify patients with concurrent use of >= 2 drugs for 30 or more days. Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.
+A similar approach can be used for identifying concurrent use of multiple medications. Below, we identify patients with concurrent use of >= 2 drugs for 30 or more days. _Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug._
 
     
     data concurrent_use (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
