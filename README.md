@@ -1,5 +1,3 @@
- hljs.highlightAll();
-
 Calculating the Proportion of Days Covered using SAS
 ====================================================
 
