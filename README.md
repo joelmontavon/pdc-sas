@@ -109,7 +109,7 @@ To calculate the PDC, we first identify the days covered by each medication. For
     run;
     
 
-Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In my examples, I have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.
+Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In our examples, we have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.
 
     data pdc (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
     	set days_covered;
