@@ -1,0 +1,225 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/atom-one-dark-reasonable.min.css">
+    <style>
+      table {
+        /*width: 100%;*/
+        font-family: monospace;
+        border-collapse: collapse;
+      }
+      th {
+        background-color: #282c34;
+        color: #98c379;
+        text-align: center;
+      }
+      th:nth-child(1) {
+        text-align: left;
+      }
+      th:hover {
+        opacity: 0.9;
+      }
+      tr:hover {
+        background-color: #abb2bf;
+        opacity: 0.5;
+        font-weight: bold;
+      }
+      td {
+        text-align: right;
+      }
+      td:nth-child(1) {
+        font-weight: bold;
+        text-align: left;
+      }
+    </style>
+	<style>
+	.icon:hover {
+	  opacity: 0.7;
+	}
+	.icon { 
+	  overflow: hidden;
+	  filter: grayscale(100%);
+	}
+	</style>
+  </head>
+  <body>
+<div>
+<a href="https://www.linkedin.com/in/joel-montavon-704808a/" target="_blank"><img class="icon" width="60" height="60" src="https://content.linkedin.com/content/dam/me/brand/en-us/brand-home/logos/In-Blue-Logo.png.original.png" style="position: absolute; right: 80px; top: 10px;"></img></a>
+<a href="https://github.com/joelmontavon/risk-adjustment" target="_blank"><img class="icon" width="80" height="80" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" style="position: absolute; right: 0px; top: 0px;"></img></a>
+<h1>Calculating the Proportion of Days Covered using SAS</h1></br>
+<p>The proportion of days covered (PDC) is a method for calculating medication adherence. It involves identifying days covered based upon the date of service and days supply using prescription claims data. The methodology adjusts the start date for overlapping fills of the same medication. This makes sense because patients often come into the pharmacy to pickup their drugs a few days early so they do not run out of supply.</p>
+    <p>PDC is a more conservative estimate when patient switches between medications in the same class or concurrently uses more than one medication in a class. For most drug classes, a PDC ≥80% is considered adherent.</p>
+<pre><code>/*Set measurement year start and end dates*/
+%let start_dt='01jan2022'd;
+%let end_dt='31dec2022'd;
+</pre></code>
+<p>This code converts these dates to days from epoch. SAS uses 1/1/1960 as the epoch. The %sysfunc() macro function allows use of data step functions outside of a data step. Note that character values (i.e., strings) do not need to be enclosed with quotation marks. Basically, we extract the portion of the date inside the quotes using the substr() function. Then, we convert the date to a number using the inputn() function. In the steps below, we will use these macro variables to set the indexes of our arrays to reflect the days in the measurement year.<p/>
+<pre><code>%let start_day_nbr=%sysfunc(inputn(%sysfunc(substr(&start_dt, 2, 9)), date9.), 8.);
+%let end_day_nbr=%sysfunc(inputn(%sysfunc(substr(&end_dt, 2, 9)), date9.), 8.);
+</el-card></pre></code>
+<p>This code creates prescription claims for the following test scenarios:</p>
+<ul>
+  <li>The SAMEDRUG patient includes overlapping fills of the same drug.</li>
+  <li>The DIFFDRUG patient includes overlapping fills of different drugs.</li>
+  <li>The NONADH patient has a PDC < 80% and not counted as adherent.</li>
+  <li>The COMBPROD patient includes overlapping fills between a single ingredient product and a combination product with the same target drug. <i>Note that the drug column only includes the target medication. Combination products with multiple target drugs should have multiple rows for each fill with one per target medication.</i></li>
+  <li>The CONCUSE patient has concurrent use of 2 different drugs (i.e., overlapping days supply of different drugs for >= 30 days).</li>
+</ul>
+<pre><code>data rx_clms;
+	format pt_id $10. drug $32. date_of_service date. days_sup 4.;
+	pt_id = 'SAMEDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
+	pt_id = 'SAMEDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'SAMEDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='05jul2022'd; days_sup = 90; output;
+	pt_id = 'SAMEDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25sep2022'd; days_sup = 90; output;
+	pt_id = 'DIFFDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
+	pt_id = 'DIFFDRUG'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'DIFFDRUG'; drug_name = 'LOSARTAN 25 TABS'; drug = 'LOSARTAN'; date_of_service='05jul2022'd; days_sup = 90; output;
+	pt_id = 'DIFFDRUG'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='25sep2022'd; days_sup = 90; output;
+	pt_id = 'NONADH'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
+	pt_id = 'NONADH'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'NONADH'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25sep2022'd; days_sup = 90; output;
+	pt_id = 'COMBPROD'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
+	pt_id = 'COMBPROD'; drug_name = 'LISINOPRIL 10 MG / HYDROCHLOROTHIAZIDE 12.5 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'COMBPROD'; drug_name = 'LISINOPRIL 10 MG / HYDROCHLOROTHIAZIDE 12.5 MG TABS'; drug = 'LISINOPRIL'; date_of_service='05jul2022'd; days_sup = 90; output;
+	pt_id = 'COMBPROD'; drug_name = 'LISINOPRIL 10 MG / HYDROCHLOROTHIAZIDE 12.5 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25sep2022'd; days_sup = 90; output;
+	pt_id = 'CONCUSE'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
+	pt_id = 'CONCUSE'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'CONCUSE'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='25mar2022'd; days_sup = 90; output;
+	pt_id = 'CONCUSE'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='05jul2022'd; days_sup = 90; output;
+	pt_id = 'CONCUSE'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='25sep2022'd; days_sup = 90; output;
+run;
+</pre></code>
+<p>To calculate the PDC, we first identify the days covered by each medication. For overlapping fills of the same drug, we assume that the patient will finish his/her current fill before starting the refill. For overlapping fills of different drug, we assume that the patient will start his/her new medication right away. So, we need to adjust for overlapping days supply for fills of the same drug but not of different drugs. To accomplish this, we need two arrays. The drug level array will capture the days covered adjusting for overlapping days supply of the same drug. The patient level array will capture days covered across all of the patient's drugs without adjusting for overlapping days supply for different drugs.<p/>
+<pre><code>
+/*Sort the data for the group by in next step*/
+proc sort data=rx_clms;
+	by pt_id drug;
+run;
+
+data days_covered (drop=drug_name drug date_of_service days_sup i j);
+	set rx_clms;
+	by pt_id drug;
+	/*The array indexes are set to reflect the days in the measurement year*/
+	array days_covered_drug[&start_day_nbr : &end_day_nbr] _temporary_;
+	array days_covered_pt[&start_day_nbr : &end_day_nbr] days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr;
+	retain days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr;
+
+	/*Reset the patient level array for each patient*/
+	if first.pt_id then do;
+		do i = &start_day_nbr to &end_day_nbr;
+			days_covered_pt[i] = 0;
+		end;
+	end;
+	/*Reset the drug level array for each patient and drug*/
+	if first.drug then do;
+		do i = &start_day_nbr to &end_day_nbr;
+			days_covered_drug[i] = 0;
+		end;
+	end;
+	
+	/*Increment the index of the drug level array for each day covered*/
+	/*We use the i and j variables to keep track of the days supply used and the date within the measurement year, respectively*/
+	i = 0;
+	j = date_of_service;
+	/*The loop stops when we have used up all of the supply or we reach the end of the measurement year*/
+	do while (i < days_sup and j <= &end_day_nbr); 
+		/*If the day is not already covered, we increment the index of the drug level array*/
+		/*Otherwise, we just skip over it.*/
+		if days_covered_drug[j] = 0 then do;
+			/*Increment the index of the drug level array*/
+			days_covered_drug[j] = 1;
+			/*Increment variable tracking the days supply used*/
+			i + 1;
+		end;
+		/*Increment to the next day in the measurement year*/
+		j + 1;
+	end;
+
+	/*For the last fill, increment the index of the patient level array for any index in the drug level array that has been incremented*/
+	if last.drug then do;
+		do i = &start_day_nbr to &end_day_nbr;
+			if days_covered_drug[i] = 1 then days_covered_pt[i] + 1;
+		end;
+	end;
+
+	/*Output the last row for each patient*/
+	if last.pt_id then output;
+run;
+</code></pre>
+<!--<table>
+  <tr><th>Patient ID</th><th>days_covered_pt22646</th><th>days_covered_pt22647</th><th>days_covered_pt22648</th><th>days_covered_pt22649</th><th>days_covered_pt22650</th><th>days_covered_pt22651</th><th>days_covered_pt22652</th><th>days_covered_pt22653</th><th>days_covered_pt22654</th><th>days_covered_pt22655</th><th>…</th><th>days_covered_pt23001</th><th>days_covered_pt23002</th><th>days_covered_pt23003</th><th>days_covered_pt23004</th><th>days_covered_pt23005</th><th>days_covered_pt23006</th><th>days_covered_pt23007</th><th>days_covered_pt23008</th><th>days_covered_pt23009</th><th>days_covered_pt23010</th></tr>
+  <tr><td>COMBPROD</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  <tr><td>CONCUSE</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  <tr><td>DIFFDRUG</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+  <tr><td>NONADH</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+  <tr><td>SAMEDRUG</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+</table>-->
+<p>Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In my examples, I have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.</p>
+<pre><code>data pdc (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
+	set days_covered;
+	format pdc percent8.2;
+	array days_covered[&start_day_nbr : &end_day_nbr] days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr;
+	
+	tot_days_in_tx_prd = 0;
+	tot_days_covered = 0;
+
+	/*i tracks if the patient has reached the first day in the treatment period yet.*/
+	i = 0;
+	/*Loop thru the days in the measurement year*/
+	do j = &start_day_nbr to &end_day_nbr;
+		/*Count the days covered*/
+		if days_covered[j] >= 1 then do;
+			tot_days_covered + 1;
+			/*i is set to 1 with the first day covered*/
+			i = 1;
+		end;
+		/*The total days in the treatment period will only increment after we have reached the first day covered*/
+		tot_days_in_tx_prd + i;
+	end;
+	pdc = round(tot_days_covered/tot_days_in_tx_prd, 0.0001);
+	if pdc >= 0.8 then numerator = 1;
+		else numerator = 0;
+run;
+</code></pre>
+<!--<table>
+  <tr><th>Patient ID</th><th>Total Days in the Treatment Period</th><th>Total Days Covered</th><th>PDC</th><th>Numerator</th></tr>
+  <tr><td>COMBPROD</td><td>365</td><td>360</td><td>0.9863</td><td>&check;</td></tr>
+  <tr><td>CONCUSE</td><td>365</td><td>360</td><td>0.9863</td><td>&check;</td></tr>
+  <tr><td>DIFFDRUG</td><td>365</td><td>353</td><td>0.9671</td><td>&check;</td></tr>
+  <tr><td>NONADH</td><td>365</td><td>270</td><td>0.7397</td><td></td></tr>
+  <tr><td>SAMEDRUG</td><td>365</td><td>360</td><td>0.9863</td><td>&check;</td></tr>
+</table>-->
+<p>A similar approach can be used for identifying concurrent use of multiple medications. Below, I identify patients with concurrent use of >= 2 drugs for 30 or more days. Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.
+</p>
+<pre><code>
+data concurrent_use (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
+	set days_covered;
+	array days_covered[&start_day_nbr : &end_day_nbr] days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr;
+	
+	tot_days_concurrent_use = 0;
+
+	/*Loop thru the days in the measurement year*/
+	do j = &start_day_nbr to &end_day_nbr;
+		/*Count days with concurrent use (e.g., >= 2 drugs on each day in the measurement year)*/
+		if days_covered[j] >= 2 then do;
+			tot_days_concurrent_use + 1;
+		end;
+	end;
+	/*Count in numerator if concurrent use of >= 30 days*/
+	if tot_days_concurrent_use >= 30 then numerator = 1;
+		else numerator = 0;
+run;
+</code></pre>
+<!--<table>
+    <tr><th width="200px">Patient ID</th><th width="200px">Total Days of Concurrent Use</th><th width="200px">Numerator</th></tr>
+    <tr><td>COMBPROD</td><td>0</td><td></td></tr>
+    <tr><td>CONCUSE</td><td>90</td><td>&check;</td></tr>
+    <tr><td>DIFFDRUG</td><td>7</td><td></td></tr>
+    <tr><td>NONADH</td><td>0</td><td></td></tr>
+    <tr><td>SAMEDRUG</td><td>0</td><td></td></tr>
+</table>-->
+</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/languages/sas.min.js"></script>
+    <script>hljs.highlightAll();</script>			
+  </body>
+</html>
