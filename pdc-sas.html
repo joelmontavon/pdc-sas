@@ -47,7 +47,7 @@
 <a href="https://github.com/joelmontavon/risk-adjustment" target="_blank"><img class="icon" width="80" height="80" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" style="position: absolute; right: 0px; top: 0px;"></img></a>
 <h1>Calculating the Proportion of Days Covered using SAS</h1></br>
 <p>The proportion of days covered (PDC) is a method for calculating medication adherence. It involves identifying days covered based upon the date of service and days supply using prescription claims data. The methodology adjusts the start date for overlapping fills of the same medication. This makes sense because patients often come into the pharmacy to pickup their drugs a few days early so they do not run out of supply.</p>
-    <p>PDC is a more conservative estimate when patient switches between medications in the same class or concurrently uses more than one medication in a class. For most drug classes, a PDC ≥80% is considered adherent.</p>
+    <p>PDC is a more conservative estimate when patient switches between medications in the same class or concurrently uses more than one medication in a class. For most drug classes, a PDC &ge; 80% is considered adherent.</p>
 <pre><code>/*Set measurement year start and end dates*/
 %let start_dt='01jan2022'd;
 %let end_dt='31dec2022'd;
@@ -62,7 +62,7 @@
   <li>The DIFFDRUG patient includes overlapping fills of different drugs.</li>
   <li>The NONADH patient has a PDC < 80% and not counted as adherent.</li>
   <li>The COMBPROD patient includes overlapping fills between a single ingredient product and a combination product with the same target drug. <i>Note that the drug column only includes the target medication. Combination products with multiple target drugs should have multiple rows for each fill with one per target medication.</i></li>
-  <li>The CONCUSE patient has concurrent use of 2 different drugs (i.e., overlapping days supply of different drugs for >= 30 days).</li>
+  <li>The CONCUSE patient has concurrent use of 2 different drugs (i.e., overlapping days supply of different drugs for &ge; 30 days).</li>
 </ul>
 <pre><code>data rx_clms;
 	format pt_id $10. drug $32. date_of_service date. days_sup 4.;
@@ -153,7 +153,7 @@ run;
   <tr><td>NONADH</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
   <tr><td>SAMEDRUG</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
 </table>-->
-<p>Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In our examples, we have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.</p>
+<p>Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In our examples, we have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC &ge; 80% is classified as adherent.</p>
 <pre><code>data pdc (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
 	set days_covered;
 	format pdc percent8.2;
@@ -188,7 +188,7 @@ run;
   <tr><td>NONADH</td><td>365</td><td>270</td><td>0.7397</td><td></td></tr>
   <tr><td>SAMEDRUG</td><td>365</td><td>360</td><td>0.9863</td><td>&check;</td></tr>
 </table>-->
-<p>A similar approach can be used for identifying concurrent use of multiple medications. Below, we identify patients with concurrent use of >= 2 drugs for 30 or more days. <i>Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.</i>
+<p>A similar approach can be used for identifying concurrent use of multiple medications. Below, we identify patients with concurrent use of &ge; 2 drugs for 30 or more days. <i>Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.</i>
 </p>
 <pre><code>
 data concurrent_use (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
