@@ -120,7 +120,7 @@ run;
 * PDC is simply the total days covered divided by the total the days in the treatment period.
 * The treatment period typically starts with the patient's first fill during the measurement year.
 * And, the treatement typically ends with the end of the measurement year (or disenrollment/death).
-* In my examples, I have assumed that the patients have not disenrolled or passed during the measurement year.
+* In our examples, we have assumed that the patients have not disenrolled or passed during the measurement year.
 * For most drug classes, PDC >= 80% is classified as adherent.
 *****************************************************************************************************************************/
 
@@ -152,7 +152,7 @@ run;
 
 /*****************************************************************************************************************************
 * A similar approach can be used for identifying concurrent use of multiple medications.
-* Below, I identify patients with concurrent use of >= 2 drugs for 30 or more days.
+* Below, we identify patients with concurrent use of >= 2 drugs for 30 or more days.
 * Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.
 *****************************************************************************************************************************/
 

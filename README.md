@@ -24,7 +24,6 @@ This code creates prescription claims for the following test scenarios:
 *   The COMBPROD patient includes overlapping fills between a single ingredient product and a combination product with the same target drug. _Note that the drug column only includes the target medication. Combination products with multiple target drugs should have multiple rows for each fill with one per target medication._
 *   The CONCUSE patient has concurrent use of 2 different drugs (i.e., overlapping days supply of different drugs for >= 30 days).
 
-```
     data rx_clms;
     	format pt_id $10. drug $32. date_of_service date. days_sup 4.;
     	pt_id = 'SAMEDRUG'; drug_name = 'LISINOPRIL 10 MG TABS'; drug = 'LISINOPRIL'; date_of_service='01jan2022'd; days_sup = 90; output;
@@ -48,7 +47,7 @@ This code creates prescription claims for the following test scenarios:
     	pt_id = 'CONCUSE'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='05jul2022'd; days_sup = 90; output;
     	pt_id = 'CONCUSE'; drug_name = 'LOSARTAN 25 MG TABS'; drug = 'LOSARTAN'; date_of_service='25sep2022'd; days_sup = 90; output;
     run;
-```    
+    
 
 To calculate the PDC, we first identify the days covered by each medication. For overlapping fills of the same drug, we assume that the patient will finish his/her current fill before starting the refill. For overlapping fills of different drug, we assume that the patient will start his/her new medication right away. So, we need to adjust for overlapping days supply for fills of the same drug but not of different drugs. To accomplish this, we need two arrays. The drug level array will capture the days covered adjusting for overlapping days supply of the same drug. The patient level array will capture days covered across all of the patient's drugs without adjusting for overlapping days supply for different drugs.
 

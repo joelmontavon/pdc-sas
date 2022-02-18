@@ -153,7 +153,7 @@ run;
   <tr><td>NONADH</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
   <tr><td>SAMEDRUG</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>…</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr>
 </table>-->
-<p>Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In my examples, I have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.</p>
+<p>Now, we have everything we need to calculate the PDC. PDC is simply the total days covered divided by the total the days in the treatment period. The treatment period typically starts with the patient's first fill during the measurement year. And, the treatement typically ends with the end of the measurement year (or disenrollment/death). In our examples, we have assumed that the patients have not disenrolled or passed during the measurement year. For most drug classes, PDC >= 80% is classified as adherent.</p>
 <pre><code>data pdc (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
 	set days_covered;
 	format pdc percent8.2;
@@ -188,7 +188,7 @@ run;
   <tr><td>NONADH</td><td>365</td><td>270</td><td>0.7397</td><td></td></tr>
   <tr><td>SAMEDRUG</td><td>365</td><td>360</td><td>0.9863</td><td>&check;</td></tr>
 </table>-->
-<p>A similar approach can be used for identifying concurrent use of multiple medications. Below, I identify patients with concurrent use of >= 2 drugs for 30 or more days. Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.
+<p>A similar approach can be used for identifying concurrent use of multiple medications. Below, we identify patients with concurrent use of >= 2 drugs for 30 or more days. <i>Note that measures looking at concurrent use do not alway adjust for overlapping days supply of the same drug.</i>
 </p>
 <pre><code>
 data concurrent_use (drop=days_covered_pt&start_day_nbr - days_covered_pt&end_day_nbr i j);
